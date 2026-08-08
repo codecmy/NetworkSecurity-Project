@@ -18,7 +18,10 @@ class TrainingPipelineConfig:
         self.data_validation_invalid_dir=training_pipeline.DATA_VALIDATION_INVALID_DIR
         self.data_validation_drift_report=training_pipeline.DATA_VALIDATION_DRIFT_REPORT
         self.data_validation_drift_report_file_name=training_pipeline.DATA_VALIDATION_DRIFT_REPORT_FILE_NAME
-
+        self.DATA_TRANSFORMATIONAL_DIR_NAME=training_pipeline.DATA_TRANSFORMATIONAL_DIR_NAME
+        self.DATA_TRANSFORMATIONAL_TRANSFORMED_DATA_DIR=training_pipeline.DATA_TRANSFORMATIONAL_TRANSFORMED_DATA_DIR
+        self.DATA_TRANSFORMATIONAL_TRANSFORMED_OBJECT_DIR=training_pipeline.DATA_TRANSFORMATIONAL_TRANSFORMED_OBJECT_DIR
+    
 class DataIngestionConfig:
     def __init__(self, training_pipeline_config:TrainingPipelineConfig):
         try:
@@ -47,3 +50,23 @@ class DataValidationConfig:
             training_pipeline_config.data_validation_drift_report,
             training_pipeline_config.data_validation_drift_report_file_name
         )
+
+
+
+class DataTransformationConfig:
+    def __init__(self,training_pipeline_config:TrainingPipelineConfig):
+        self.data_transformation:str =os.path.join(training_pipeline_config.ARTIFACT_DIR,training_pipeline_config.DATA_TRANSFORMATIONAL_DIR_NAME)
+        self.transformed_train_file_path:str=os.path.join(self.data_transformation,training_pipeline.DATA_TRANSFORMATION_TRAIN_FILE_PATH,training_pipeline.TRAIN_FILE_NAME.replace("csv","npy"),)
+        self.transformed_object_file_path:str=os.path.join(self.data_transformation,training_pipeline.DATA_TRANSFORMATIONAL_TRANSFORMED_OBJECT_DIR,training_pipeline.PREPROCESSING_OBJECT_FILE_NAME,)
+        self.transformed_test_file_path:str=os.path.join(self.data_transformation,training_pipeline.DATA_TRANSFORMATION_TEST_FILE_PATH,training_pipeline.TEST_FILE_NAME.replace("csv","npy"))
+        
+        """
+        def __init__(self,training_pipeline_config:TrainingPipelineConfig):
+                self.data_transformation_dir: str = os.path.join( training_pipeline_config.artifact_dir,training_pipeline.DATA_TRANSFORMATION_DIR_NAME )
+                self.transformed_train_file_path: str = os.path.join( self.data_transformation_dir,training_pipeline.DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR,
+                    training_pipeline.TRAIN_FILE_NAME.replace("csv", "npy"),)
+                self.transformed_test_file_path: str = os.path.join(self.data_transformation_dir,  training_pipeline.DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR,
+                    training_pipeline.TEST_FILE_NAME.replace("csv", "npy"), )
+                self.transformed_object_file_path: str = os.path.join( self.data_transformation_dir, training_pipeline.DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR,
+                    training_pipeline.PREPROCESSING_OBJECT_FILE_NAME,)
+        """
