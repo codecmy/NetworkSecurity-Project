@@ -5,5 +5,9 @@ pymongo
 pymongo[srv]==3.12
 certifi
 scikit-learn
+scipy
+dill
+pyaml
+
 
 #-e .
