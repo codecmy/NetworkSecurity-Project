@@ -1,2 +1,7 @@
 venv
 .env
+mlflow.db
+mlruns/
+mlartifacts/
+mlflow-server.log
+mlflow-server.err

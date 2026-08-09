@@ -56,7 +56,7 @@ class DataTransformation:
     def initiate_data_transformation(self)->DataTransformationArtifact:
         logging.info("Data Transformation Initiated....")
         try:
-            train_df=DataTransformation.read_data(self.data_validation_artifect.valid_test_file_path)
+            train_df=DataTransformation.read_data(self.data_validation_artifect.valid_train_file_path)
             test_df=DataTransformation.read_data(self.data_validation_artifect.valid_test_file_path)
 
             #training data
@@ -80,9 +80,10 @@ class DataTransformation:
             #Save the array 
             save_numpy_array_data(self.data_transformation_config.transformed_train_file_path,array=train_arr)
             save_numpy_array_data(self.data_transformation_config.transformed_test_file_path,array=test_arr)
-            save_object(self.data_transformation_config.transformed_test_file_path,preprocessor_object)
+            save_object(self.data_transformation_config.transformed_object_file_path,preprocessor_object)
 
-
+            save_object("final_model/preprocessor.pkl",preprocessor_object)
+             
             #prepairing Artifacts
             data_tranformation_artifacts=DataTransformationArtifact(
                 transformed_test_file_path=self.data_transformation_config.transformed_test_file_path,

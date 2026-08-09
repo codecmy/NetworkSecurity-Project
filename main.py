@@ -5,6 +5,8 @@ from networksecurity.entity.config_entity import DataIngestionConfig
 from networksecurity.entity.config_entity import TrainingPipelineConfig,DataValidationConfig,DataTransformationConfig
 from networksecurity.components.data_validation import DataValidation
 from networksecurity.components.data_transformation import DataTransformation
+from networksecurity.entity.config_entity import ModelTrainerConfig
+from networksecurity.components.model_trainer import ModelTrainer
 import sys
 if __name__ == "__main__":
     try:
@@ -29,5 +31,11 @@ if __name__ == "__main__":
         data_transformation_artifact=data_transfomation.initiate_data_transformation()
         print(data_transformation_artifact)
         logging.info("Data Transformation Successfully ended from main.py file")
+
+        logging.info("Model Training Strated in main.py")
+        model_training_config=ModelTrainerConfig(trainingpipelineconfig)
+        model_trainer=ModelTrainer(model_training_config,data_transformation_artifact)
+        model_trainer_artifact=model_trainer.initiate_model_trainer()
+        logging.info("Model Training Ended Successfully exited main.py")
     except Exception as e:
         raise NetworkSecurityException(e,sys)
