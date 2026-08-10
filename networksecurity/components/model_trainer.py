@@ -46,7 +46,7 @@ class ModelTrainer:
 
     def train_model(self,X_train,y_train,X_test,y_test):
         models={
-            "RandomForestClassifier":RandomForestClassifier(verbose=1),
+            "RandomForestClassifier":RandomForestClassifier(verbose=1,n_jobs=-1),
             "GradientBoostingClassifier":GradientBoostingClassifier(verbose=1),
             "AdaBoostClassifier":AdaBoostClassifier(),
             "DecisionTreeClassifier":DecisionTreeClassifier(),
@@ -58,24 +58,24 @@ class ModelTrainer:
                 "criterion":['gini','entropy','log_loss']
             },
             "RandomForestClassifier":{
-                'n_estimators':[8,16,32,64,128,256]
+                'n_estimators':[16,64,256]
             },
             "GradientBoostingClassifier":{
-                'learning_rate':[.1,.01,.05,.001],
-                'subsample':[0.6,0.7,0.75,0.80,0.85,0.90],
-                'n_estimators':[8,16,32,64,128,256]
+                'learning_rate':[.1,.05,.01],
+                'subsample':[0.6,0.8,0.9],
+                'n_estimators':[16,64,256]
             },
             "LogisticRegression":{},
             "AdaBoostClassifier":{
-                'learning_rate':[.1,0.01,0.5,.001],
-                'n_estimators':[8,16,32,64,128,256]
+                'learning_rate':[.1,0.01,0.5],
+                'n_estimators':[16,64,256]
             }
         }
-        model_report:dict=evaluate_models(X_train,y_train,X_test,y_test,models,params)
+        model_report, best_estimators=evaluate_models(X_train,y_train,X_test,y_test,models,params)
         best_model_score=max(model_report.values())
 
         best_model_name=list(model_report.keys())[list(model_report.values()).index(best_model_score)]
-        best_model=models[best_model_name]
+        best_model=best_estimators[best_model_name]
         y_train_pred=best_model.predict(X_train)
         classification_train_metric=get_classification_score(y_true=y_train,y_pred=y_train_pred)
 

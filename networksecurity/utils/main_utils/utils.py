@@ -2,7 +2,8 @@ import yaml
 import dill
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
-from sklearn.model_selection import GridSearchCV
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import GridSearchCV, HalvingGridSearchCV
 import os,sys
 import pickle
 from sklearn.metrics import r2_score
@@ -67,27 +68,39 @@ def load_numpy_array_data(file_path:str):
         raise NetworkSecurityException(e,sys)
 
 
+def _grid_size(param_grid:dict)->int:
+    total=1
+    for values in param_grid.values():
+        total*=len(values)
+    return total
+
 def evaluate_models(X_train,y_train,X_test,y_test,models,params):
     try:
         report={}
+        best_estimators={}
         for i in range(len(list(models))):
             model=list(models.values())[i]
-            para=params[list(models.keys())[i]]
+            model_name=list(models.keys())[i]
+            para=params[model_name]
 
-            gs=GridSearchCV(estimator=model,param_grid=para,cv=3)
+            if len(para)==0 or _grid_size(para)<=9:
+                gs=GridSearchCV(estimator=model,param_grid=para,cv=3,n_jobs=-1,return_train_score=False)
+            else:
+                gs=HalvingGridSearchCV(estimator=model,param_grid=para,cv=3,factor=3,n_jobs=-1,return_train_score=False)
+
             gs.fit(X_train,y_train)
 
-            model.set_params(**gs.best_params_)
-            model.fit(X_train,y_train)
-            y_train_pred=model.predict(X_train)
-            y_test_pred=model.predict(X_test)
+            best_model=gs.best_estimator_
+            best_estimators[model_name]=best_model
+            y_train_pred=best_model.predict(X_train)
+            y_test_pred=best_model.predict(X_test)
 
             train_model_score=r2_score(y_pred=y_train_pred,y_true=y_train)
             test_model_score=r2_score(y_true=y_test,y_pred=y_test_pred)
 
-            report[list(models.keys())[i]]=test_model_score
+            report[model_name]=test_model_score
 
-        return report
+        return report, best_estimators
 
     except Exception as e:
         raise NetworkSecurityException(e,sys)

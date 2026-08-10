@@ -22,6 +22,7 @@ class TrainingPipelineConfig:
         self.DATA_TRANSFORMATIONAL_TRANSFORMED_DATA_DIR=training_pipeline.DATA_TRANSFORMATIONAL_TRANSFORMED_DATA_DIR
         self.DATA_TRANSFORMATIONAL_TRANSFORMED_OBJECT_DIR=training_pipeline.DATA_TRANSFORMATIONAL_TRANSFORMED_OBJECT_DIR
         self.artifact_dir=training_pipeline.ARTIFACT_DIR
+        self.model_dir=os.path.join(os.getcwd(), "final_model")
 class DataIngestionConfig:
     def __init__(self, training_pipeline_config:TrainingPipelineConfig):
         try:
