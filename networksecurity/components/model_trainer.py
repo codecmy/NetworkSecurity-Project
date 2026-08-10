@@ -23,9 +23,13 @@ import dagshub
 from dotenv import load_dotenv
 import mlflow
 load_dotenv()
-repo_owner=os.getenv("DAGSHUB_REPO_OWNER")
-repo_name=os.getenv("DAGSHUB_REPO_NAME")
-dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+try:
+    repo_owner=os.getenv("DAGSHUB_REPO_OWNER")
+    repo_name=os.getenv("DAGSHUB_REPO_NAME")
+    if repo_owner and repo_name:
+        dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+except Exception as e:
+    logging.warning(f"Dagshub init skipped: {e}")
 
 
 class ModelTrainer:
