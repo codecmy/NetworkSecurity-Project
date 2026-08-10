@@ -32,6 +32,8 @@ class DataIngestion:
             collection=self.mongo_client[database_name][collection_name]
 
             df=pd.DataFrame(list(collection.find()))
+            if df.empty:
+                raise Exception(f"Collection [{collection_name}] in database [{database_name}] is empty. Push data to MongoDB first.")
             if "_id" in df.columns.to_list():
                 df=df.drop("_id", axis=1)
             df.replace("na",np.nan, inplace=True)    
