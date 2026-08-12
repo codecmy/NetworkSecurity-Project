@@ -1,6 +1,0 @@
-2026-08-10 22:46:13,260 - INFO - HTTP Request: GET https://dagshub.com/api/v1/user "HTTP/1.1 200 OK"
-2026-08-10 22:46:13,345 - INFO - Accessing as bhawani.pany10c
-2026-08-10 22:46:14,449 - INFO - HTTP Request: GET https://dagshub.com/api/v1/repos/bhawani.pany10c/NetworkSecurity-Project "HTTP/1.1 200 OK"
-2026-08-10 22:46:15,744 - INFO - HTTP Request: GET https://dagshub.com/api/v1/user "HTTP/1.1 200 OK"
-2026-08-10 22:46:15,760 - INFO - Initialized MLflow to track repo "bhawani.pany10c/NetworkSecurity-Project"
-2026-08-10 22:46:15,764 - INFO - Repository bhawani.pany10c/NetworkSecurity-Project initialized!

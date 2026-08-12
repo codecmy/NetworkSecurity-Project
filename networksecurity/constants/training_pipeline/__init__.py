@@ -32,6 +32,15 @@ DATA_INGESTION_TRAIN_TEST_SPLIT_RATIO :float = 0.2
 DATA_INGESTION_INGESTED_DIR:str = "ingested"
 
 """
+Feedback Related Constants
+Feedback lives in its own database (separate from training data) so the
+collected "correct"/"wrong" verdicts can be folded into future retraining.
+"""
+
+FEEDBACK_DATABASE_NAME :str = "NetworkSecurityFeedback"
+FEEDBACK_COLLECTION_NAME :str = "feedback"
+
+"""
 Data Validation realted constants with DATA_VALIDATION VAR NAME
 """
 

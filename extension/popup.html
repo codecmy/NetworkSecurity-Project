@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>PhishGuard</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #0b57d0;
+      --text: #202124;
+      --text-2: #5f6368;
+      --text-3: #80868b;
+      --border: #e2e6ea;
+      --success: #188038;
+      --success-bg: #e6f4ea;
+      --warn: #e37400;
+      --warn-bg: #fef7e0;
+      --danger: #d93025;
+      --danger-bg: #fce8e6;
+      --blue-bg: #e8f0fe;
+      --neutral-bg: #f1f3f4;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(60, 64, 67, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 360px; margin: 0; padding: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 13px; color: var(--text); background: #fff;
+    }
+    .hidden { display: none !important; }
+
+    header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    header .logo { width: 30px; height: 30px; display: block; }
+    header h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+    header .spacer { flex: 1; }
+    .pill { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+    .pill.scanning { background: var(--blue-bg); color: var(--primary-dark); }
+    .pill.full { background: var(--blue-bg); color: var(--primary-dark); }
+    .pill.fast { background: var(--neutral-bg); color: var(--text-2); }
+    .pill.error { background: var(--danger-bg); color: var(--danger); }
+
+    .body { padding: 16px; }
+
+    /* Scan start view */
+    .scan-start { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 30px 4px 8px; }
+    .scan-start .icon-wrap { width: 64px; height: 64px; border-radius: 50%; background: var(--blue-bg);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .scan-start .icon-wrap svg { width: 32px; height: 32px; }
+    .scan-start .title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+    .scan-start .url { font-size: 12px; color: var(--text-2); margin-top: 6px; max-width: 300px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+    .scan-start .error { color: var(--danger); font-size: 12px; margin-top: 10px; line-height: 1.5; max-width: 300px; }
+    .scan-btn { margin-top: 22px; width: 100%; padding: 13px; border: none; border-radius: 12px;
+      background: var(--primary); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; font: inherit;
+      transition: background 0.12s ease, box-shadow 0.12s ease; }
+    .scan-btn:hover { background: var(--primary-dark); }
+    .scan-btn:active { box-shadow: inset 0 2px 4px rgba(0,0,0,0.18); }
+    .scan-btn:disabled { opacity: 0.6; cursor: default; }
+    .scan-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+    /* Hero */
+    .hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 4px 0 12px; }
+    .icon-wrap { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .icon-wrap svg { width: 34px; height: 34px; }
+    .icon-wrap.low { background: var(--success-bg); }
+    .icon-wrap.medium { background: var(--warn-bg); }
+    .icon-wrap.high { background: var(--danger-bg); }
+    .icon-wrap.unknown { background: var(--neutral-bg); }
+    .icon-wrap.scanning { background: var(--blue-bg); }
+    .hero .title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .hero .subtitle { font-size: 12.5px; color: var(--text-2); margin-top: 5px; line-height: 1.5; max-width: 310px; }
+
+    /* Spinner */
+    .spinner { width: 26px; height: 26px; border: 3px solid #c5d9f8; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Risk meter */
+    .meter { margin-top: 14px; }
+    .meter .track { position: relative; height: 8px; border-radius: 999px;
+      background: linear-gradient(90deg, #188038 0%, #e9b949 42%, #e37400 62%, #d93025 100%); }
+    .meter .marker { position: absolute; top: -4px; left: 50%; width: 16px; height: 16px; border-radius: 50%;
+      background: #fff; border: 2px solid #3c4043; box-shadow: 0 1px 3px rgba(0,0,0,.35); transform: translateX(-50%); }
+    .meter .labels { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text-3); margin-top: 7px; }
+    .meter .value { text-align: center; font-size: 12px; font-weight: 600; color: var(--text-2); margin-top: 6px; }
+
+    /* URL */
+    .url-row { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 9px 12px;
+      background: var(--neutral-bg); border-radius: 8px; }
+    .url-row .url { flex: 1; font-size: 12px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+    .url-row .lock { flex-shrink: 0; display: inline-flex; }
+    .url-row .copy { flex-shrink: 0; background: none; border: none; cursor: pointer; color: var(--text-3); padding: 2px; border-radius: 4px; }
+    .url-row .copy:hover { color: var(--primary); background: var(--blue-bg); }
+    .url-row .copy svg { width: 14px; height: 14px; }
+
+    /* Why section */
+    .why { margin-top: 14px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .why .why-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+      background: #fff; border: none; cursor: pointer; font: inherit; color: var(--text); text-align: left; }
+    .why .why-head:hover { background: #fafbfc; }
+    .why .why-head .chev { margin-left: auto; transition: transform 0.15s ease; color: var(--text-3); }
+    .why.open .why-head .chev { transform: rotate(180deg); }
+    .why .why-body { border-top: 1px solid var(--border); padding: 8px 12px 10px; }
+    .reason { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 12.5px; line-height: 1.45; }
+    .reason .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+    .reason .dot.neg { background: var(--danger); }
+    .reason .dot.zero { background: var(--warn); }
+    .reason .dot.pos { background: var(--success); }
+    .reason.more { color: var(--text-3); font-size: 12px; cursor: pointer; user-select: none; }
+    .positive-msg { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 12.5px; color: var(--success); }
+
+    /* Feedback */
+    .feedback { margin-top: 14px; }
+    .feedback .prompt { font-size: 12px; color: var(--text-3); }
+    .feedback .actions { display: flex; gap: 8px; margin-top: 8px; }
+    .feedback .actions button { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 10px;
+      background: #fff; cursor: pointer; font: inherit; color: var(--text-3); display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease; }
+    .feedback .actions button:hover { border-color: var(--primary); color: var(--primary); background: var(--blue-bg); }
+    .feedback .actions button svg { width: 14px; height: 14px; }
+    .feedback form { margin-top: 8px; }
+    .feedback select { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 10px; font: inherit; background: #fff; color: var(--text); }
+    .feedback .send { margin-top: 8px; width: 100%; padding: 9px; border: none; border-radius: 10px;
+      background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; transition: background 0.12s ease; }
+    .feedback .send:hover { background: var(--primary-dark); }
+    .feedback .thanks { font-size: 12.5px; color: var(--success); text-align: center; padding: 6px 0; }
+
+    /* Footer */
+    footer { display: flex; align-items: center; padding: 12px 16px; border-top: 1px solid var(--border); }
+    footer .options-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; background: transparent;
+      border: none; border-radius: 10px; color: var(--text-3); cursor: pointer; font: inherit; font-weight: 600;
+      text-decoration: none; transition: background 0.12s ease, color 0.12s ease; }
+    footer .options-btn:hover { background: var(--neutral-bg); color: var(--text); }
+    footer .options-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    footer .options-btn svg { width: 15px; height: 15px; }
+    .last-checked { text-align: center; font-size: 11px; color: var(--text-3); padding: 0 16px 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <img class="logo" src="icons/icon32.png" alt="" />
+    <h1>PhishGuard</h1>
+    <div class="spacer"></div>
+    <span id="pill" class="pill hidden">idle</span>
+  </header>
+
+  <div class="body">
+    <!-- Scan start -->
+    <div class="scan-start" id="scanView">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="M20 20l-3.2-3.2"/>
+          <path d="M8 11h6M11 8v6"/>
+        </svg>
+      </div>
+      <div class="title">Ready to check this page</div>
+      <div class="url" id="scanUrl"></div>
+      <div class="error hidden" id="scanError"></div>
+      <button class="scan-btn" id="scanBtn">Scan this website</button>
+    </div>
+
+    <!-- Report view -->
+    <div id="reportView" class="hidden">
+      <div class="hero" id="hero">
+        <div class="icon-wrap" id="heroIcon">
+          <svg id="iconLow" viewBox="0 0 24 24" fill="none" class="hidden">
+            <circle cx="12" cy="12" r="10" fill="#188038"/>
+            <path d="M7.5 12.5l3 3 6-7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg id="iconMedium" viewBox="0 0 24 24" fill="none" class="hidden">
+            <path d="M12 3 2.8 19.5h18.4L12 3z" fill="#e37400"/>
+            <path d="M12 9.5v4.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="12" cy="16.6" r="1.3" fill="#fff"/>
+          </svg>
+          <svg id="iconHigh" viewBox="0 0 24 24" fill="none" class="hidden">
+            <path d="M12 2l8 3.2v5.6c0 4.7-3.2 8.5-8 11.2-4.8-2.7-8-6.5-8-11.2V5.2L12 2z" fill="#d93025"/>
+            <path d="M12 8v4.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="12" cy="15.2" r="1.3" fill="#fff"/>
+          </svg>
+          <svg id="iconUnknown" viewBox="0 0 24 24" fill="none" class="hidden">
+            <circle cx="12" cy="12" r="10" fill="#5f6368"/>
+            <path d="M12 7.5a2.6 2.6 0 0 1 2.6 2.6c0 1.8-2.6 2.2-2.6 3.9" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="16.5" r="1.2" fill="#fff"/>
+          </svg>
+          <div id="spinner" class="spinner hidden"></div>
+        </div>
+        <div class="title" id="heroTitle"></div>
+        <div class="subtitle" id="heroSub"></div>
+      </div>
+
+      <div class="meter hidden" id="meter">
+        <div class="track"><div class="marker" id="meterMarker"></div></div>
+        <div class="labels"><span>Safe</span><span>Risky</span></div>
+        <div class="value" id="meterValue"></div>
+      </div>
+
+      <div class="url-row hidden" id="urlRow">
+        <span class="lock" id="lockIcon" title="Secure connection">
+          <svg viewBox="0 0 24 24" fill="none" width="13" height="13">
+            <rect x="5" y="10" width="14" height="10" rx="2" fill="#188038"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="#188038" stroke-width="2"/>
+          </svg>
+        </span>
+        <span class="url" id="urlText"></span>
+        <button class="copy" id="copyUrl" title="Copy address">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M5 15V6a2 2 0 0 1 2-2h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="why hidden" id="why">
+        <button class="why-head" id="whyHead">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5" stroke-linecap="round"/><circle cx="12" cy="8" r="1.1" fill="currentColor" stroke="none"/></svg>
+          <span id="whyTitle">Why did PhishGuard flag this?</span>
+          <span class="chev">&#9660;</span>
+        </button>
+        <div class="why-body hidden" id="whyBody"></div>
+      </div>
+
+      <div class="feedback hidden" id="feedback">
+        <div class="prompt" id="feedbackPrompt">Was this warning helpful?</div>
+        <div class="actions">
+          <button id="fbUp">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11l3-9V9h-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            Correct
+          </button>
+          <button id="fbDown">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H6l-3 9v4h7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            Wrong
+          </button>
+        </div>
+        <form id="fbForm" class="hidden">
+          <select id="fbReason">
+            <option value="">Why is it wrong?</option>
+            <option value="legitimate">It's a legitimate site I trust</option>
+            <option value="i-own">I own or operate this site</option>
+            <option value="safe-now">The site has been fixed since</option>
+            <option value="other">Other</option>
+          </select>
+          <button type="submit" class="send">Send feedback</button>
+        </form>
+        <div class="thanks hidden" id="fbThanks">Thanks — this helps improve PhishGuard.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a class="options-btn" id="options" href="#" title="Open settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1.1 1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 1 1 7.07 4.4l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+      Options
+    </a>
+  </footer>
+  <div class="last-checked" id="lastChecked"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

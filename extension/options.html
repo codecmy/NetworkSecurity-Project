@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>PhishGuard Options</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #0b57d0;
+      --text: #202124;
+      --text-2: #5f6368;
+      --text-3: #80868b;
+      --border: #e2e6ea;
+      --success: #188038;
+      --success-bg: #e6f4ea;
+      --danger: #d93025;
+      --danger-bg: #fce8e6;
+      --blue-bg: #e8f0fe;
+      --neutral-bg: #f1f3f4;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0 16px 48px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 14px; color: var(--text); background: #f8f9fa;
+    }
+    .topbar { background: #fff; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .topbar-inner { max-width: 640px; margin: 0 auto; padding: 16px 8px; display: flex; align-items: center; gap: 12px; }
+    .topbar img { width: 30px; height: 30px; }
+    .topbar h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+    .topbar .save-status { margin-left: auto; font-size: 13px; color: var(--success); }
+    .topbar .save-status.error { color: var(--danger); }
+
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px; }
+    .card h2 { font-size: 15px; margin: 0 0 4px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .card .card-sub { font-size: 12.5px; color: var(--text-3); margin: 0 0 16px; line-height: 1.5; }
+    .card h2 svg { width: 17px; height: 17px; color: var(--primary); }
+
+    label.field-label { display: block; font-weight: 600; font-size: 13px; margin: 14px 0 6px; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+      font-size: 14px; font-family: inherit; background: #fff; color: var(--text);
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+    }
+    .hint { font-size: 12px; color: var(--text-3); margin-top: 5px; line-height: 1.5; }
+
+    /* toggle */
+    .toggle-row { display: flex; align-items: center; gap: 12px; padding: 12px 0 4px; }
+    .toggle-row .toggle-text { flex: 1; }
+    .toggle-row .toggle-text .t-label { font-weight: 600; font-size: 13.5px; }
+    .toggle-row .toggle-text .t-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch .slider { position: absolute; inset: 0; background: #dadce0; border-radius: 999px; transition: 0.15s ease; cursor: pointer; }
+    .switch .slider::before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.25); }
+    .switch input:checked + .slider { background: var(--primary); }
+    .switch input:checked + .slider::before { transform: translateX(18px); }
+
+    /* sliders */
+    .slider-row { margin-top: 18px; }
+    .slider-row:first-of-type { margin-top: 6px; }
+    .slider-row .s-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .slider-row .s-label { font-weight: 600; font-size: 13.5px; }
+    .slider-row .s-value { font-size: 12.5px; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+    .slider-row .s-value.high { background: var(--danger-bg); color: var(--danger); }
+    .slider-row .s-value.medium { background: var(--warn-bg, #fef7e0); color: #e37400; }
+    input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 999px; background: linear-gradient(90deg, #188038 0%, #e9b949 40%, #e37400 60%, #d93025 100%); outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; border: 2px solid #3c4043; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: 6px; }
+
+    /* test connection */
+    .test-btn { padding: 10px 16px; border: 1px solid var(--primary); border-radius: 10px; background: #fff;
+      color: var(--primary); font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: inherit; }
+    .test-btn:hover { background: var(--blue-bg); }
+    .test-btn:disabled { opacity: 0.6; cursor: default; }
+    .test-result { margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.5; display: none; }
+    .test-result.ok { display: block; background: var(--success-bg); color: var(--success); }
+    .test-result.bad { display: block; background: var(--danger-bg); color: var(--danger); }
+    .test-result code { background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+
+    .actions { display: flex; gap: 10px; margin-top: 4px; }
+    .btn { padding: 11px 18px; border-radius: 10px; font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: inherit; }
+    .btn.primary { border: none; background: var(--primary); color: #fff; }
+    .btn.primary:hover { background: var(--primary-dark); }
+    .btn.secondary { border: 1px solid var(--border); background: #fff; color: var(--text-2); }
+    .btn.secondary:hover { background: #fafbfc; }
+
+    .footnote { font-size: 12px; color: var(--text-3); text-align: center; margin-top: 20px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <img src="icons/icon32.png" alt="" />
+      <h1>PhishGuard settings</h1>
+      <span class="save-status" id="saveStatus"></span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- Connection -->
+    <section class="card">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 13l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Connection
+      </h2>
+      <p class="card-sub">Where PhishGuard's analysis engine lives.</p>
+
+      <label class="field-label" for="backendUrl">Backend URL</label>
+      <input type="text" id="backendUrl" placeholder="http://127.0.0.1:8000" spellcheck="false" />
+      <div class="hint">The PhishGuard API, including scheme and port (no trailing slash).</div>
+
+      <label class="field-label" for="apiKey">API key <span style="font-weight:400; color:var(--text-3);">(optional)</span></label>
+      <input type="password" id="apiKey" placeholder="Leave empty if the API is open" autocomplete="off" />
+      <div class="hint">Sent as the <code>X-API-Key</code> header. Only needed if your deployment protects the API.</div>
+
+      <div style="margin-top:18px;">
+        <button class="test-btn" id="testBtn">Test connection</button>
+        <div class="test-result" id="testResult"></div>
+      </div>
+    </section>
+
+    <!-- Scanning -->
+    <section class="card">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12c3.5-6 14.5-6 18 0-3.5 6-14.5 6-18 0z"/><circle cx="12" cy="12" r="3"/></svg>
+        Scanning
+      </h2>
+      <p class="card-sub">How PhishGuard watches the pages you visit.</p>
+      <div class="toggle-row">
+        <div class="toggle-text">
+          <div class="t-label">Automatically scan pages</div>
+          <div class="t-sub">Check every page you navigate to. Turn off to only check when you click &ldquo;Re-scan&rdquo;.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="autoScan" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="hint" style="margin-top:12px;">
+        Scanned addresses are sent to your backend for analysis. Keep the backend on a network you trust.
+      </div>
+    </section>
+
+    <!-- Alert levels -->
+    <section class="card">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 2.8 19.5h18.4L12 3z"/><path d="M12 9.5v4.5" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+        Alert levels
+      </h2>
+      <p class="card-sub">When PhishGuard should warn or block. Lower values = more warnings.</p>
+
+      <div class="slider-row">
+        <div class="s-head">
+          <span class="s-label">Blocking threshold</span>
+          <span class="s-value high" id="highVal">60%</span>
+        </div>
+        <input type="range" id="highThreshold" min="0.1" max="0.95" step="0.05" />
+        <div class="hint">At or above this risk, PhishGuard blocks the page until you choose to continue.</div>
+      </div>
+
+      <div class="slider-row">
+        <div class="s-head">
+          <span class="s-label">Suspicious threshold</span>
+          <span class="s-value medium" id="mediumVal">40%</span>
+        </div>
+        <input type="range" id="mediumThreshold" min="0.05" max="0.9" step="0.05" />
+        <div class="hint">At or above this risk (below the blocking threshold), a warning banner is shown.</div>
+      </div>
+
+      <div class="scale"><span>Low</span><span>Medium</span><span>High risk</span></div>
+    </section>
+
+    <div class="actions">
+      <button class="btn primary" id="saveBtn">Save</button>
+      <button class="btn secondary" id="resetBtn">Reset to defaults</button>
+    </div>
+
+    <p class="footnote">PhishGuard — real-time URL safety checks with a machine-learning model.</p>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

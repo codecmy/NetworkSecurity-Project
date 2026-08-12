@@ -12,4 +12,9 @@ mlflow
 dagshub
 fastapi
 python-multipart
+tldextract
+python-whois
+beautifulsoup4
+pydantic
+requests
 #-e .
