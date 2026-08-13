@@ -27,9 +27,17 @@ from networksecurity.utils.feature_extraction.extractor import (
     PhishingFeatureExtractor,
 )
 
-MODEL_DIR = os.path.join("final_model")
-MODEL_URL_PATH = os.path.join(MODEL_DIR, "model_url.pkl")
-MODEL_FULL_PATH = os.path.join(MODEL_DIR, "model_full.pkl")
+def model_dir() -> str:
+    """Directory holding model_url.pkl / model_full.pkl.
+
+    Defaults to final_model/ but can be pointed elsewhere at runtime (e.g. a
+    Lambda /tmp cache) via the PHISHGUARD_MODEL_DIR environment variable.
+    """
+    return os.getenv("PHISHGUARD_MODEL_DIR", os.path.join("final_model"))
+
+
+def artifact_path(name: str) -> str:
+    return os.path.join(model_dir(), name)
 
 HTML_FEATURES = [
     "Favicon", "Request_URL", "URL_of_Anchor", "Links_in_tags", "SFH",
@@ -53,12 +61,12 @@ class _TieredModel:
 
     def fast(self):
         if self._fast is None:
-            self._fast = self._load(MODEL_URL_PATH)
+            self._fast = self._load(artifact_path("model_url.pkl"))
         return self._fast
 
     def full(self):
         if self._full is None:
-            self._full = self._load(MODEL_FULL_PATH)
+            self._full = self._load(artifact_path("model_full.pkl"))
         return self._full
 
 

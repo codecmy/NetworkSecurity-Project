@@ -1,4 +1,4 @@
-// PhishGuard options page: connection, scanning, alert levels. Auto-saves on change.
+﻿// PhishGuard options page: connection, scanning, alert levels. Auto-saves on change.
 
 const DEFAULTS = {
   backendUrl: "http://127.0.0.1:8000",
@@ -124,7 +124,7 @@ async function testConnection() {
     result.className = "test-result bad";
     result.textContent = "Couldn't reach " + settings.backendUrl + ".";
     result.innerHTML +=
-      " Check that the backend is running (<code>python app.py</code>), then try again.";
+      " Check that the backend is deployed and reachable, then try again.";
   } finally {
     btn.disabled = false;
     btn.textContent = "Test connection";

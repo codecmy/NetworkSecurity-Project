@@ -1,0 +1,69 @@
+name: promote-model
+
+on:
+  workflow_dispatch:
+    inputs:
+      bucket_name:
+        description: Model registry bucket name
+        type: string
+        default: networksecurity-model-registry
+      version:
+        description: Candidate model version to promote (e.g. v13)
+        type: string
+        required: true
+      metric:
+        description: Metric used for the promotion gate
+        type: choice
+        options:
+          - accuracy
+          - f1
+          - precision
+          - recall
+        default: accuracy
+      min_score:
+        description: Minimum acceptable score (default 0.6)
+        type: string
+        default: "0.6"
+      force:
+        description: Bypass the evaluation criteria
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-model
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Evaluate and promote candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: pip install -r aws/scripts/requirements.txt
+
+      - name: Evaluate and promote
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          ARGS="--bucket ${{ inputs.bucket_name }} --version ${{ inputs.version }} \
+                --metric ${{ inputs.metric }} --min-accuracy ${{ inputs.min_score }}"
+          if [ "${{ inputs.force }}" = "true" ]; then ARGS="$ARGS --force"; fi
+          python aws/scripts/publish_model.py $ARGS

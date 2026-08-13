@@ -1,0 +1,117 @@
+name: deploy-lambda
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+        default: dev
+      model_version:
+        description: Model version to pin in Lambda (e.g. v13). Empty follows the production manifest.
+        type: string
+        default: ""
+      bucket_name:
+        description: Model registry bucket name
+        type: string
+        default: networksecurity-model-registry
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-lambda-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Run offline test suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # test_scorer requires trained models that live in S3, not in the repo,
+      # so it is excluded from the CI suite (run it locally after training).
+      - name: Run tests
+        run: python -m pytest tests -q -k "not scorer"
+
+  deploy:
+    name: Build image and deploy serverless stack
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Ensure ECR repository exists
+        env:
+          REPOSITORY: phishguard-inference-${{ inputs.environment }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws ecr describe-repositories --repository-names "$REPOSITORY" >/dev/null 2>&1 || \
+            aws ecr create-repository --repository-name "$REPOSITORY" \
+              --image-scanning-configuration scanOnPush=true
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push inference image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: phishguard-inference-${{ inputs.environment }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f aws/lambda/Dockerfile -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy CloudFormation stack
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws cloudformation deploy \
+            --template-file aws/infrastructure/network-security-stack.yaml \
+            --stack-name network-security-inference-${{ inputs.environment }} \
+            --region "$AWS_REGION" \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              Environment=${{ inputs.environment }} \
+              BucketName=${{ inputs.bucket_name }} \
+              LambdaImageUri=${{ steps.build-image.outputs.image }} \
+              ModelVersion=${{ inputs.model_version }} \
+              MongodbUrl=${{ secrets.MONGODB_URL }} \
+              ApiKey=${{ secrets.API_KEY }}
+
+      - name: Print API endpoint
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws cloudformation describe-stacks \
+            --stack-name network-security-inference-${{ inputs.environment }} \
+            --region "$AWS_REGION" \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiEndpoint'].OutputValue" \
+            --output text

@@ -1,7 +1,39 @@
-venv
+# secrets & local config
 .env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# local logs
+logs/
+*.log
+
+# local databases / experiment runs
 mlflow.db
 mlruns/
 mlartifacts/
 mlflow-server.log
 mlflow-server.err
+
+# model artifacts stay out of git - S3 is the source of truth
+final_model/
+saved_models/
+artifact/
+Artifact/
+*.pkl
+*.joblib
+metrics.json
+
+# runtime-collected training/feedback data (regenerate via scripts)
+real_data/
+prediction_output/
+
+# misc
+.DS_Store
+.moto/

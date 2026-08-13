@@ -1,20 +1,16 @@
-pandas 
-numpy 
-python-dotenv
-pymongo
-pymongo[srv]==3.12
-certifi
+# Runtime / training dependencies for the network-security package.
+# The Lambda image has its own leaner set in aws/lambda/requirements.txt.
+pandas
+numpy
 scikit-learn
 scipy
-dill
-pyaml
-mlflow
-dagshub
-fastapi
-python-multipart
 tldextract
-python-whois
 beautifulsoup4
-pydantic
 requests
-#-e .
+python-whois
+pymongo[srv]>=4.6
+certifi
+python-dotenv
+boto3
+# dev / test
+pytest

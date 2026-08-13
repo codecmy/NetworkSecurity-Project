@@ -74,7 +74,7 @@ Feedback rows are stored in the dedicated MongoDB database
 **`NetworkSecurityFeedback`** (collection `feedback`) — separate from the
 training data — together with the 30 extracted features for the URL, so the
 collected verdicts are directly usable for retraining. If MongoDB is
-unreachable, feedback falls back to `real_data/feedback.csv` locally.
+unreachable, feedback is dropped best-effort (it never fails the request).
 
 Fold feedback into the training set later with:
 
@@ -82,19 +82,12 @@ Fold feedback into the training set later with:
 python train_from_feedback.py   # writes real_data/features_with_feedback.csv
 ```
 
-Start the backend locally:
+Deploy the backend serverlessly (see the repo `README.md` for the full
+step-by-step guide) and set **Options → Backend URL** to the deployment's HTTPS
+endpoint, e.g. `https://<api-id>.execute-api.<region>.amazonaws.com`.
 
-```bash
-python app.py                 # serves on http://0.0.0.0:8000
-# or
-python -m uvicorn app:app --host 0.0.0.0 --port 8000
-```
-
-Then set **Options → Backend URL** to `http://localhost:8000` (use `http://127.0.0.1:8000`
-in the extension — mixed-content / localhost rules apply for remote HTTPS backends).
-
-If the backend is deployed behind a domain with `API_KEY` set, paste the key into
-**Options → API key** (sent as the `X-API-Key` header).
+If the backend is deployed with an API key set, paste the key into **Options →
+API key** (sent as the `X-API-Key` header).
 
 ## Risk levels
 

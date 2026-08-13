@@ -124,7 +124,7 @@ async function testConnection() {
     result.className = "test-result bad";
     result.textContent = "Couldn't reach " + settings.backendUrl + ".";
     result.innerHTML +=
-      " Check that the backend is running (<code>python app.py</code>), then try again.";
+      " Check that the backend is deployed and reachable, then try again.";
   } finally {
     btn.disabled = false;
     btn.textContent = "Test connection";

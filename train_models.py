@@ -67,21 +67,43 @@ def main():
         train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
 
         os.makedirs(SAVE_DIR, exist_ok=True)
+        per_model = {}
         for filename, features in MODELS.items():
             pipeline = build_pipeline()
             pipeline.fit(train_df[features], train_df["Result"])
             y_pred = pipeline.predict(test_df[features])
+            metrics = {
+                "accuracy": round(accuracy_score(test_df["Result"], y_pred), 4),
+                "f1": round(f1_score(test_df["Result"], y_pred), 4),
+                "precision": round(precision_score(test_df["Result"], y_pred), 4),
+                "recall": round(recall_score(test_df["Result"], y_pred), 4),
+            }
             print(
-                f"{filename:18s} acc={accuracy_score(test_df['Result'], y_pred):.4f} "
-                f"f1={f1_score(test_df['Result'], y_pred):.4f} "
-                f"prec={precision_score(test_df['Result'], y_pred):.4f} "
-                f"rec={recall_score(test_df['Result'], y_pred):.4f}"
+                f"{filename:18s} acc={metrics['accuracy']:.4f} "
+                f"f1={metrics['f1']:.4f} "
+                f"prec={metrics['precision']:.4f} "
+                f"rec={metrics['recall']:.4f}"
             )
             with open(os.path.join(SAVE_DIR, filename), "wb") as f:
                 import pickle
 
                 pickle.dump({"features": features, "pipeline": pipeline}, f)
+            per_model[filename] = metrics
             print(f"  saved -> {os.path.join(SAVE_DIR, filename)}")
+
+        # Write metrics.json consumed by aws/scripts/package_model.py.
+        # Top-level metrics reflect the full-tier model (model_full.pkl).
+        import json
+
+        full_metrics = per_model["model_full.pkl"]
+        metrics_json = {
+            **full_metrics,
+            "models": per_model,
+            "trained_from": DATA_PATH,
+        }
+        with open(os.path.join("metrics.json"), "w", encoding="utf-8") as f:
+            json.dump(metrics_json, f, indent=2)
+        print("wrote -> metrics.json (used by aws/scripts/package_model.py)")
     except Exception as e:
         raise NetworkSecurityException(e, sys) from e
 

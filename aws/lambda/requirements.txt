@@ -1,0 +1,11 @@
+pandas
+numpy
+scikit-learn
+scipy
+tldextract
+beautifulsoup4
+requests
+python-whois
+pymongo[srv]>=4.6
+certifi
+python-dotenv
